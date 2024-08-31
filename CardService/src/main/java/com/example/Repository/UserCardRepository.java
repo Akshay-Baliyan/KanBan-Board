@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface UserCardRepository extends MongoRepository<Card, String> {
+public interface UserCardRepository extends MongoRepository<Card, Status> {
     @Query("{ 'tasks.assignedEmployees.userId': ?0 }")
     List<Card> findByAssignedEmployees_UserId(String userId);
 
