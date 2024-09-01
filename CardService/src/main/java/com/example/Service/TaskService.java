@@ -18,7 +18,7 @@ public interface TaskService {
     public void deleteTask(String cardId, String taskId,String managerId) throws TaskNotFoundException, CardNotFoundException, InvalidUser;
     List<Task> getTaskByCardId(String cardId,User user) throws CardNotFoundException, TaskNotFoundException;
     List<Task> getTaskByAssignedEmployees(String userId)throws UserNotFoundException, TaskNotFoundException, CardNotFoundException;
-    public void moveTask(MoveTaskRequest moveTaskRequest) throws TaskOverloadException, CardNotFoundException, TaskNotFoundException;
+    public void moveTask(String fromCardId, String toCardId, String taskId) throws TaskOverloadException, CardNotFoundException, TaskNotFoundException;
 
 
 

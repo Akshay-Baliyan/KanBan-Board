@@ -147,10 +147,15 @@ throw e;
     }
 
 
-    @PostMapping("/move")
+    @PostMapping("/user/moveTask")
     public ResponseEntity<String> moveTask(@RequestBody MoveTaskRequest moveTaskRequest)throws CardNotFoundException, TaskNotFoundException, TaskOverloadException {
         try {
-            taskService.moveTask(moveTaskRequest);
+
+            taskService.moveTask(
+                    moveTaskRequest.getFromCardId(),
+                    moveTaskRequest.getToCardId(),
+                    moveTaskRequest.getTaskId()
+            );
             return new ResponseEntity<>("Task moved successfully", HttpStatus.OK);
         } catch (CardNotFoundException|TaskNotFoundException|TaskOverloadException e) {
 throw e;        }

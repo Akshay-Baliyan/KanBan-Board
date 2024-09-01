@@ -12,7 +12,8 @@ public class Task {
     private String taskName;
     private Priority priority;
     private Status status;
-    private List<User> assignedEmployees;
+//    private List<User> assignedEmployees;
+    private User assignedEmployees;
     private String startDate;
     private String endDate;
 
@@ -34,7 +35,7 @@ public class Task {
 
     public Task(){}
 
-    public Task(String taskId, String taskName, Priority priority, Status status, List<User> assignedEmployees) {
+    public Task(String taskId, String taskName, Priority priority, Status status, User assignedEmployees) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.priority = priority;
@@ -76,11 +77,11 @@ public class Task {
         this.status = status;
     }
 
-    public List<User> getAssignedEmployees() {
+    public User getAssignedEmployees() {
         return assignedEmployees;
     }
 
-    public void setAssignedEmployees(List<User> assignedEmployees) {
+    public void setAssignedEmployees(User assignedEmployees) {
         this.assignedEmployees = assignedEmployees;
     }
 
