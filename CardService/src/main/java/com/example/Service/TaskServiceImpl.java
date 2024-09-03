@@ -10,10 +10,7 @@ import com.example.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -35,8 +32,25 @@ public class TaskServiceImpl implements TaskService {
         this.userCardRepository = userCardRepository;
         this.taskRepository = taskRepository;
         this.cardProxy = cardProxy;
+        initializeCards();
+        initializeAdminUser();
+    }
+    private void initializeAdminUser() {
+        Optional<User> existingUser = userRepository.findById(managerId);
+        if (existingUser.isEmpty()) {
+            User adminUser = new User();
+            adminUser.setUserId(managerId);
+            adminUser.setUserName("Admin");
+            adminUser.setUserRole("admin");
+            adminUser.setUserPassword("password123");
+            userRepository.save(adminUser);
+        }
     }
 
+    @Override
+    public List<User> getUsersWithRoleNotAdmin() {
+        return userRepository.findAllByUserRoleNotAdmin();
+    }
     @Override
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -72,6 +86,7 @@ public class TaskServiceImpl implements TaskService {
 
             } else {
                 System.out.println("User not found.");
+                user.setUserRole("user");
             }
 
 
@@ -125,12 +140,94 @@ public class TaskServiceImpl implements TaskService {
     }
 
     //-------------------normal if else for better understanding which satisfies all conditions--------
+//    @Override
+//    public Card addTaskToCard(String cardId, Task task, String managerId) throws EmployeeNotAssigned, UserNotFoundException, TaskAlreadyExistException, CardNotFoundException, TaskNotFoundException, TaskOverloadException, InvalidUser {
+//        // Checking whether the user is the manager using managerId
+//        if (this.managerId.equals(managerId)) {
+//            // Check whether cardId is present in userCardRepository
+//            Status cId=Status.valueOf(cardId);
+//            Optional<Card> optionalCard = userCardRepository.findById(cId);
+//            if (optionalCard.isPresent()) {
+//                // If card exists, get the card
+//                Card card = optionalCard.get();
+//
+//                // Ensure the tasks list is initialized
+//                List<Task> taskList = card.getTasks();
+//                if (taskList == null) {
+//                    taskList = new ArrayList<>();
+//                    card.setTasks(taskList);
+//                }
+//
+//                // Check for the employees assigned to the task and get them
+//                User assignee = task.getAssignedEmployees();
+//                // It should not be null; the task should be assigned to someone
+//                if (assignee != null) {
+//                    List<String> ineligibleUsers = new ArrayList<>();
+//
+//                    // Check whether the assigned employee is a valid employee in userRepository
+//
+//                        if (userRepository.existsById(assignee.getUserId())) {
+//                            // If valid employee, check how many tasks that employee has
+//                            long inProgressTaskCount = 0;
+//                            for (Task existingTask : taskList) {
+//                                if (existingTask.getStatus() == Status.In_Progress) {
+//                                    User assignedUser = existingTask.getAssignedEmployees();
+//                                    if (assignedUser != null) {
+//
+//                                            // Employees in task card == given employee
+//                                            if (assignedUser.getUserId().equals(assignee.getUserId())) {
+//                                                inProgressTaskCount++;
+//                                            }
+//
+//                                    }
+//                                }
+//                            }
+//
+//                            if (task.getStatus() == Status.In_Progress && inProgressTaskCount >= 3) {
+//                                ineligibleUsers.add(assignee.getUserName() + " (ID: " + assignee.getUserId() + ")");
+//                            }
+//                        } else {
+//                            throw new UserNotFoundException();
+//                        }
+//
+//
+//                    // If there are ineligible users, throw an exception and inform the manager
+//                    if (!ineligibleUsers.isEmpty()) {
+//                        throw new TaskOverloadException("Task cannot be assigned to the following user(s) due to overload: " + String.join(", ", ineligibleUsers));
+//                    }
+//
+//                } else {
+//                    throw new EmployeeNotAssigned();
+//                }
+//
+//                // Check if the task already exists in the card
+//                for (Task existingTask : taskList) {
+//                    if (existingTask.getTaskId().equals(task.getTaskId())) {
+//                        throw new TaskAlreadyExistException();
+//                    }
+//                }
+//
+//                // Add the new task to the card
+////                taskRepository.save(task);
+//                card.getTasks().add(task);
+//                userCardRepository.save(card);
+//
+//                return card;
+//
+//            } else {
+//                throw new CardNotFoundException();
+//            }
+//        } else {
+//            throw new InvalidUser();
+//        }
+//    }
+
     @Override
     public Card addTaskToCard(String cardId, Task task, String managerId) throws EmployeeNotAssigned, UserNotFoundException, TaskAlreadyExistException, CardNotFoundException, TaskNotFoundException, TaskOverloadException, InvalidUser {
         // Checking whether the user is the manager using managerId
         if (this.managerId.equals(managerId)) {
             // Check whether cardId is present in userCardRepository
-            Status cId=Status.valueOf(cardId);
+            Status cId = Status.valueOf(cardId);
             Optional<Card> optionalCard = userCardRepository.findById(cId);
             if (optionalCard.isPresent()) {
                 // If card exists, get the card
@@ -143,33 +240,34 @@ public class TaskServiceImpl implements TaskService {
                     card.setTasks(taskList);
                 }
 
+                // Generate a unique ID for the new task
+                String newTaskId = UUID.randomUUID().toString();
+                task.setTaskId(newTaskId);
+
                 // Check for the employees assigned to the task and get them
-                User assignee = task.getAssignedEmployees();
-                // It should not be null; the task should be assigned to someone
-                if (assignee != null) {
+                User assignees = task.getAssignedEmployees();
+                if (assignees != null) {
                     List<String> ineligibleUsers = new ArrayList<>();
 
-                    // Check whether the assigned employee is a valid employee in userRepository
+                    // Check each assigned employee
 
-                        if (userRepository.existsById(assignee.getUserId())) {
+                        if (userRepository.existsById(assignees.getUserId())) {
                             // If valid employee, check how many tasks that employee has
                             long inProgressTaskCount = 0;
                             for (Task existingTask : taskList) {
                                 if (existingTask.getStatus() == Status.In_Progress) {
                                     User assignedUser = existingTask.getAssignedEmployees();
                                     if (assignedUser != null) {
-
-                                            // Employees in task card == given employee
-                                            if (assignedUser.getUserId().equals(assignee.getUserId())) {
-                                                inProgressTaskCount++;
-                                            }
-
+                                        // Employees in task card == given employee
+                                        if (assignedUser.getUserId().equals(assignees.getUserId())) {
+                                            inProgressTaskCount++;
+                                        }
                                     }
                                 }
                             }
 
                             if (task.getStatus() == Status.In_Progress && inProgressTaskCount >= 3) {
-                                ineligibleUsers.add(assignee.getUserName() + " (ID: " + assignee.getUserId() + ")");
+                                ineligibleUsers.add(assignees.getUserName() + " (ID: " + assignees.getUserId() + ")");
                             }
                         } else {
                             throw new UserNotFoundException();
@@ -193,7 +291,6 @@ public class TaskServiceImpl implements TaskService {
                 }
 
                 // Add the new task to the card
-//                taskRepository.save(task);
                 card.getTasks().add(task);
                 userCardRepository.save(card);
 
@@ -254,36 +351,40 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
-        // Find the task in the card's task list
-        Task task = null;
-        for (Task t : card.getTasks()) {
+        System.out.println("in edit after in progress check");
+        // Remove old task and add updated task
+        List<Task> tasks = card.getTasks();
+        Task oldTask = null;
+        for (Task t : tasks) {
             if (t.getTaskId().equals(updatedTask.getTaskId())) {
-                task = t;
+                oldTask = t;
                 break;
             }
         }
-        if (task == null) {
-            throw new TaskNotFoundException();
-        }
+
+
+
 
         // Update task attributes
-        if (updatedTask.getTaskName() != null) {
-            task.setTaskName(updatedTask.getTaskName());
-        }
-        if (updatedTask.getPriority() != null) {
-            task.setPriority(updatedTask.getPriority());
-        }
-        if (updatedTask.getStatus() != null) {
-            task.setStatus(updatedTask.getStatus());
-        }
-        if (updatedTask.getAssignedEmployees() != null) {
-            task.setAssignedEmployees(updatedTask.getAssignedEmployees());
-        }
+        System.out.println("updating task");
+//        if (updatedTask.getTaskName() != null && updatedTask.getPriority() != null && updatedTask.getStatus() != null && updatedTask.getAssignedEmployees() != null) {
+            if (oldTask != null) {
+                tasks.remove(oldTask);
+            } else {
+                throw new TaskNotFoundException();
+            }
+        System.out.println("task with updated details :: "+updatedTask);
+            tasks.add(updatedTask);
+//        }
+        System.out.println("tasks in card ::: "+tasks);
 
         // Save the updated card
+
+        card.setTasks(tasks);
+        System.out.println("tasks in card after save ::: "+card.getTasks());
         userCardRepository.save(card);
 
-        return task;
+        return updatedTask;
     }
 
 
@@ -479,7 +580,7 @@ public class TaskServiceImpl implements TaskService {
 //    }
 //
 public void moveTask(String fromCardId, String toCardId, String taskId)
-        throws TaskOverloadException, CardNotFoundException, TaskNotFoundException {
+        throws TaskOverloadException, CardNotFoundException, TaskNotFoundException, EmployeeNotAssigned {
     // Retrieve the "from" card
     Status fromStatus = Status.valueOf(fromCardId);
     Optional<Card> fromCardOptional = userCardRepository.findById(fromStatus);
@@ -503,7 +604,6 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
         // Handle the case where the "to" card doesn't exist
         throw new CardNotFoundException();
     }
-
     // Find the task in the "from" card
     Task taskToMove = null;
     for (Task task : fromCard.getTasks()) {
@@ -513,7 +613,6 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
             break;
         }
     }
-
     if (taskToMove == null) {
         // Handle the case where the task isn't found in the "from" card
         throw new TaskNotFoundException();
@@ -532,6 +631,53 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
     // Update the task's status to the name of the "to" card
     taskToMove.setStatus(toCard.getCardName());
     System.out.println("Task to move (after status change): " + taskToMove);
+
+
+    if(toCard.getCardId().equals("In_Progress")) {
+    User assignee = taskToMove.getAssignedEmployees();
+    // It should not be null; the task should be assigned to someone
+    if (assignee != null) {
+        List<String> ineligibleUsers = new ArrayList<>();
+
+        // Check whether the assigned employee is a valid employee in userRepository
+        List<Task>taskList=toCard.getTasks();
+        if (userRepository.existsById(assignee.getUserId())) {
+            // If valid employee, check how many tasks that employee has
+            long inProgressTaskCount = 0;
+            for (Task existingTask : taskList) {
+                if (existingTask.getStatus() == Status.In_Progress) {
+                    User assignedUser = existingTask.getAssignedEmployees();
+                    if (assignedUser != null) {
+
+                        // Employees in task card == given employee
+                        if (assignedUser.getUserId().equals(assignee.getUserId())) {
+                            inProgressTaskCount++;
+                        }
+
+                    }
+                }
+            }
+
+            if (taskToMove.getStatus() == Status.In_Progress && inProgressTaskCount >= 3) {
+                ineligibleUsers.add(assignee.getUserName() + " (ID: " + assignee.getUserId() + ")");
+            }
+        } else {
+            throw new UserNotFoundException();
+        }
+
+
+        // If there are ineligible users, throw an exception and inform the manager
+        if (!ineligibleUsers.isEmpty()) {
+            throw new TaskOverloadException("Task cannot be assigned to the following user(s) due to overload: " + String.join(", ", ineligibleUsers));
+        }
+
+    } else {
+        throw new EmployeeNotAssigned();
+    }
+}
+
+
+
 
     // Remove the task from the "from" card
     fromCard.getTasks().remove(taskToMove);
@@ -571,6 +717,18 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
         System.out.println("Task is not in 'toCard' after save or save operation failed");
     }
 }
+    private void initializeCards() {
+        List<Status> predefinedCards = Arrays.asList(Status.To_Do, Status.In_Progress, Status.Done);
+        for (Status status : predefinedCards) {
+            Optional<Card> existingCard = userCardRepository.findById(status);
+            if (existingCard.isEmpty()) {
+                Card card = new Card(status,new ArrayList<Task>(),status);
+                card.setCardId(status);
+                card.setTasks(new ArrayList<>());
+                userCardRepository.save(card);
+            }
+        }
+    }
 
     // Method to generate a new unique taskId
     private String generateUniqueTaskId() {

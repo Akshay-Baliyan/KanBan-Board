@@ -13,7 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/v2")
@@ -49,6 +51,11 @@ public class TaskController {
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/user/nonAdminUsers")
+    public List<User> getUsersWithRoleNotAdmin() {
+        return taskService.getUsersWithRoleNotAdmin();
     }
 
     @PostMapping("/user/{cardId}/addTask")//----working----
@@ -90,6 +97,8 @@ throw e;
             System.out.println("testing");
             //task.setTaskId(taskId);
             String userId = getUserId(request);
+            System.out.println("cardId :::: "+cardId);
+            System.out.println("task to update ::: "+ task);
             Task updatedTask=taskService.editTask(cardId,task);
             //Task updatedTask = taskService.editTask(task, userId);
             System.out.println("again testing");
@@ -148,7 +157,7 @@ throw e;
 
 
     @PostMapping("/user/moveTask")
-    public ResponseEntity<String> moveTask(@RequestBody MoveTaskRequest moveTaskRequest)throws CardNotFoundException, TaskNotFoundException, TaskOverloadException {
+    public ResponseEntity<Map<String, String>> moveTask(@RequestBody MoveTaskRequest moveTaskRequest)throws CardNotFoundException, TaskNotFoundException, TaskOverloadException {
         try {
 
             taskService.moveTask(
@@ -156,11 +165,16 @@ throw e;
                     moveTaskRequest.getToCardId(),
                     moveTaskRequest.getTaskId()
             );
-            return new ResponseEntity<>("Task moved successfully", HttpStatus.OK);
-        } catch (CardNotFoundException|TaskNotFoundException|TaskOverloadException e) {
-throw e;        }
-        catch (Exception e) {
-            return new ResponseEntity<>("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Task moved successfully");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (CardNotFoundException | TaskNotFoundException | TaskOverloadException e) {
+            throw e;
+        } catch (Exception e) {
+            // Return a JSON response with an error message
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "An error occurred");
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

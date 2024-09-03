@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
+import java.util.UUID;
 
 @Document
 public class Task {
@@ -33,7 +34,9 @@ public class Task {
         this.endDate = endDate;
     }
 
-    public Task(){}
+    public Task() {
+        this.taskId = UUID.randomUUID().toString(); // Automatically generate a unique ID
+    }
 
     public Task(String taskId, String taskName, Priority priority, Status status, User assignedEmployees) {
         this.taskId = taskId;
