@@ -633,7 +633,7 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
     System.out.println("Task to move (after status change): " + taskToMove);
 
 
-    if(toCard.getCardId().equals("In_Progress")) {
+    if(String.valueOf(toCard.getCardId()).equals("In_Progress")) {
     User assignee = taskToMove.getAssignedEmployees();
     // It should not be null; the task should be assigned to someone
     if (assignee != null) {
