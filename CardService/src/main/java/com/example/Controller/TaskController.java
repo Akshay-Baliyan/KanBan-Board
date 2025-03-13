@@ -97,11 +97,11 @@ throw e;
             System.out.println("testing");
             //task.setTaskId(taskId);
             String userId = getUserId(request);
-            System.out.println("cardId :::: "+cardId);
-            System.out.println("task to update ::: "+ task);
+            //System.out.println("cardId :::: "+cardId);
+            //System.out.println("task to update ::: "+ task);
             Task updatedTask=taskService.editTask(cardId,task);
             //Task updatedTask = taskService.editTask(task, userId);
-            System.out.println("again testing");
+            //System.out.println("again testing");
             return new ResponseEntity<>(updatedTask, HttpStatus.OK);
         } catch (TaskNotFoundException| UserNotFoundException|TaskOverloadException e) {
         throw e;
@@ -127,13 +127,13 @@ throw e;
     @GetMapping("/user/card/{cardId}")//----working--------
     public ResponseEntity<List<Task>> getTasksByCardId(HttpServletRequest request,@PathVariable String cardId)throws CardNotFoundException, TaskNotFoundException {
         try {
-            System.out.println("in getTask");
+            //System.out.println("in getTask");
             User user=new User();
-            System.out.println(getUserId(request));
-            System.out.println(getUserRole(request));
+            //System.out.println(getUserId(request));
+            //System.out.println(getUserRole(request));
             user.setUserId(getUserId(request));
             user.setUserRole(getUserRole(request));
-            System.out.println(user);
+            //System.out.println(user);
             List<Task> tasks = taskService.getTaskByCardId(cardId,user);
             return new ResponseEntity<>(tasks, HttpStatus.OK);
         } catch (CardNotFoundException|TaskNotFoundException e) {

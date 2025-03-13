@@ -16,7 +16,7 @@ import java.util.*;
 public class TaskServiceImpl implements TaskService {
     private final UserRepository userRepository;
     private final UserCardRepository userCardRepository;
-    private final TaskRepository taskRepository;
+    //private final TaskRepository taskRepository;
     private CardProxy cardProxy;
 
     private final String managerId = "akshay@12.co";
@@ -30,7 +30,7 @@ public class TaskServiceImpl implements TaskService {
     public TaskServiceImpl(UserRepository userRepository, UserCardRepository userCardRepository, TaskRepository taskRepository, CardProxy cardProxy) {
         this.userRepository = userRepository;
         this.userCardRepository = userCardRepository;
-        this.taskRepository = taskRepository;
+        //this.taskRepository = taskRepository;
         this.cardProxy = cardProxy;
         initializeCards();
         initializeAdminUser();
@@ -61,7 +61,7 @@ public class TaskServiceImpl implements TaskService {
         if (user.getUserId() != null && this.managerId.equals(user.getUserId())) {
             Optional<User> foundUser = userRepository.findById(user.getUserId());
             if (foundUser.isPresent()) {
-                System.out.println("User found: " + foundUser.get().getUserId());
+                //System.out.println("User found: " + foundUser.get().getUserId());
                 throw new UserAlreadyExistException();
 
             } else {
@@ -81,11 +81,11 @@ public class TaskServiceImpl implements TaskService {
         if (managerId != null && this.managerId.equals(managerId)) {
             Optional<User> foundUser = userRepository.findById(user.getUserId());
             if (foundUser.isPresent()) {
-                System.out.println("User found: " + foundUser.get().getUserId());
+                //System.out.println("User found: " + foundUser.get().getUserId());
                 throw new UserAlreadyExistException();
 
             } else {
-                System.out.println("User not found.");
+                //System.out.println("User not found.");
                 user.setUserRole("user");
             }
 
@@ -104,7 +104,7 @@ public class TaskServiceImpl implements TaskService {
     public Card createCard(Card card, String managerId) throws InvalidUser, CardNotFoundException, RemoveTaskException, CardAlreadyExistException {
         if (this.managerId.equals(managerId)) {
             // Check if the provided cardId matches one of the predefined card values
-            System.out.println("Card ID : "+card);
+            //System.out.println("Card ID : "+card);
             if (card.getCardId() != null && isValidCardId(card.getCardId())) {
                 // Check if tasks are provided, throw RemoveTaskException if true
 
@@ -114,10 +114,10 @@ public class TaskServiceImpl implements TaskService {
 
                 // Check if the card already exists in the repository
                 String cId= String.valueOf(card.getCardId());
-                System.out.println(cId);
+                //System.out.println(cId);
                 Optional<Card> foundCard = userCardRepository.findById(card.getCardId());
                 if (foundCard.isPresent()) {
-                    System.out.println("card not found creating it");
+                  //  System.out.println("card not found creating it");
                     throw new CardAlreadyExistException();
                 }
 
@@ -351,7 +351,7 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
-        System.out.println("in edit after in progress check");
+        //System.out.println("in edit after in progress check");
         // Remove old task and add updated task
         List<Task> tasks = card.getTasks();
         Task oldTask = null;
@@ -366,22 +366,22 @@ public class TaskServiceImpl implements TaskService {
 
 
         // Update task attributes
-        System.out.println("updating task");
+        //System.out.println("updating task");
 //        if (updatedTask.getTaskName() != null && updatedTask.getPriority() != null && updatedTask.getStatus() != null && updatedTask.getAssignedEmployees() != null) {
             if (oldTask != null) {
                 tasks.remove(oldTask);
             } else {
                 throw new TaskNotFoundException();
             }
-        System.out.println("task with updated details :: "+updatedTask);
+        //System.out.println("task with updated details :: "+updatedTask);
             tasks.add(updatedTask);
 //        }
-        System.out.println("tasks in card ::: "+tasks);
+        //System.out.println("tasks in card ::: "+tasks);
 
         // Save the updated card
 
         card.setTasks(tasks);
-        System.out.println("tasks in card after save ::: "+card.getTasks());
+        //System.out.println("tasks in card after save ::: "+card.getTasks());
         userCardRepository.save(card);
 
         return updatedTask;
@@ -428,40 +428,40 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<Task> getTaskByCardId(String cardId,User user ) throws CardNotFoundException, TaskNotFoundException {
-        System.out.println("in service getTask");
+        //System.out.println("in service getTask");
         Status cId=Status.valueOf(cardId);
         Optional<Card> foundCardOpt = userCardRepository.findById(cId);
         if (foundCardOpt.isEmpty()) {
             throw new CardNotFoundException();
         }
-        System.out.println("in service getTask 1");
+        //System.out.println("in service getTask 1");
         Card foundCard = foundCardOpt.get();
         List<Task> tasks = foundCard.getTasks();
         if (tasks == null || tasks.isEmpty()) {
             throw new TaskNotFoundException();
         }
-        System.out.println("in service getTask 2");
+        //System.out.println("in service getTask 2");
         if(!user.getUserRole().equalsIgnoreCase("admin")){
             List<Task> filteredTasks=new ArrayList<>();
             for(Task task : tasks){
-                System.out.println("in service getTask 3");
+                //System.out.println("in service getTask 3");
                 //System.out.println(task.getAssignedEmployees());
                 User assignedEmployees = task.getAssignedEmployees();
 //                List<String> ids = new ArrayList<>();
 //                assignedEmployees.forEach(userid -> ids.add(userid.getUserId()));
                 String ids=assignedEmployees.getUserId();
                 if(ids.equalsIgnoreCase(user.getUserId())){
-                    System.out.println("match found for"+user);
-                    System.out.println("task found for"+task);
+                    //System.out.println("match found for"+user);
+                   // System.out.println("task found for"+task);
                     filteredTasks.add(task);
                 }
             }
-            System.out.println(filteredTasks);
+            //System.out.println(filteredTasks);
             return filteredTasks;
         }
         //if admin then return all tasks in the card
         //if user then check list of assignees and only add task where user is present to the list of tasks and return the list
-        System.out.println(tasks);
+        //System.out.println(tasks);
         return tasks;
     }
 
@@ -587,7 +587,7 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
     Card fromCard;
     if (fromCardOptional.isPresent()) {
         fromCard = fromCardOptional.get();
-        System.out.println("From card before removal: " + fromCard);
+        //System.out.println("From card before removal: " + fromCard);
     } else {
         // Handle the case where the "from" card doesn't exist
         throw new CardNotFoundException();
@@ -599,7 +599,7 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
     Card toCard;
     if (toCardOptional.isPresent()) {
         toCard = toCardOptional.get();
-        System.out.println("To card before adding: " + toCard);
+        //System.out.println("To card before adding: " + toCard);
     } else {
         // Handle the case where the "to" card doesn't exist
         throw new CardNotFoundException();
@@ -609,7 +609,7 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
     for (Task task : fromCard.getTasks()) {
         if (task.getTaskId().equals(taskId)) {
             taskToMove = task;
-            System.out.println("Task to move (before status change): " + taskToMove);
+            //System.out.println("Task to move (before status change): " + taskToMove);
             break;
         }
     }
@@ -630,7 +630,7 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
 
     // Update the task's status to the name of the "to" card
     taskToMove.setStatus(toCard.getCardName());
-    System.out.println("Task to move (after status change): " + taskToMove);
+    //System.out.println("Task to move (after status change): " + taskToMove);
 
 
     if(String.valueOf(toCard.getCardId()).equals("In_Progress")) {
@@ -681,7 +681,7 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
 
     // Remove the task from the "from" card
     fromCard.getTasks().remove(taskToMove);
-    System.out.println("From card after removal: " + fromCard);
+    //System.out.println("From card after removal: " + fromCard);
     if (!fromCard.getTasks().contains(taskToMove)) {
         System.out.println("Task successfully removed from 'fromCard'");
     } else {
@@ -690,7 +690,7 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
 
     // Add the task to the "to" card
     toCard.getTasks().add(taskToMove);
-    System.out.println("To card after adding: " + toCard);
+    //System.out.println("To card after adding: " + toCard);
     if (toCard.getTasks().contains(taskToMove)) {
         System.out.println("Task successfully added to 'toCard'");
     } else {
@@ -700,7 +700,7 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
     // Save the updated "from" card
     userCardRepository.save(fromCard);
     Card savedFromCard = userCardRepository.findById(fromStatus).orElse(null);
-    System.out.println("From card after save: " + savedFromCard);
+    //System.out.println("From card after save: " + savedFromCard);
     if (savedFromCard != null && !savedFromCard.getTasks().contains(taskToMove)) {
         System.out.println("Task is no longer in 'fromCard' after save");
     } else {
@@ -710,7 +710,7 @@ public void moveTask(String fromCardId, String toCardId, String taskId)
     // Save the updated "to" card
     userCardRepository.save(toCard);
     Card savedToCard = userCardRepository.findById(toStatus).orElse(null);
-    System.out.println("To card after save: " + savedToCard);
+    //System.out.println("To card after save: " + savedToCard);
     if (savedToCard != null && savedToCard.getTasks().contains(taskToMove)) {
         System.out.println("Task successfully moved to 'toCard' after save");
     } else {
